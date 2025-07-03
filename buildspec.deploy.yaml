@@ -2,11 +2,11 @@ version: 0.2
 
 env:
   variables:
-    S3_BUCKET: "test-war-file"                             # Replace with your WAR bucket
+    S3_BUCKET: "test-war-file-upload"                             # Replace with your WAR bucket
     S3_KEY: "build-artifacts/Ecomm1.war"                   # Your WAR path
     EC2_USER: "ec2-user"
     EC2_HOST: "ec2-xx-xx-xx-xx.compute.amazonaws.com"      # Replace with your EC2 public IP or DNS
-    PEM_BUCKET: "bucket-for-pem-file"                      # S3 bucket that stores .pem file
+    PEM_BUCKET: "test-key-file-upload"                      # S3 bucket that stores .pem file
     PEM_KEY: "tomcat-server.pem"                           # PEM file name
 
 phases:
