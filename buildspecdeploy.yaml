@@ -34,33 +34,33 @@ phases:
       - echo "🛠️ Installing Tomcat and deploying WAR on EC2..."
       - |
         ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<'EOF'
-        set -e
+set -e
 
-        echo "🔧 Installing Java and wget"
-        sudo yum install -y java-11-openjdk wget
+echo "🔧 Installing Java and wget"
+sudo yum install -y java-11-openjdk wget
 
-        echo "📁 Creating Tomcat directory"
-        sudo mkdir -p /opt/tomcat
-        cd /opt/tomcat
+echo "📁 Creating Tomcat directory"
+sudo mkdir -p /opt/tomcat
+cd /opt/tomcat
 
-        echo "⬇️ Downloading Tomcat..."
-        sudo wget https://downloads.apache.org/tomcat/tomcat-10/v10.1.42/bin/apache-tomcat-10.1.42.tar.gz
+echo "⬇️ Downloading Tomcat..."
+sudo wget https://downloads.apache.org/tomcat/tomcat-10/v10.1.42/bin/apache-tomcat-10.1.42.tar.gz
 
-        echo "📦 Extracting Tomcat..."
-        sudo tar -xvzf apache-tomcat-10.1.42.tar.gz
-        sudo mv apache-tomcat-10.1.42 tomcat
-        sudo rm apache-tomcat-10.1.42.tar.gz
+echo "📦 Extracting Tomcat..."
+sudo tar -xvzf apache-tomcat-10.1.42.tar.gz
+sudo mv apache-tomcat-10.1.42 tomcat
+sudo rm apache-tomcat-10.1.42.tar.gz
 
-        echo "🚀 Deploying WAR file"
-        sudo mv /home/ec2-user/Ecomm.war /opt/tomcat/tomcat/webapps/
+echo "🚀 Deploying WAR file"
+sudo mv /home/ec2-user/Ecomm.war /opt/tomcat/tomcat/webapps/
 
-        echo "🎛️ Starting Tomcat"
-        sudo chmod +x /opt/tomcat/tomcat/bin/*.sh
-        sudo /opt/tomcat/tomcat/bin/shutdown.sh || true
-        sudo /opt/tomcat/tomcat/bin/startup.sh
+echo "🎛️ Starting Tomcat"
+sudo chmod +x /opt/tomcat/tomcat/bin/*.sh
+sudo /opt/tomcat/tomcat/bin/shutdown.sh || true
+sudo /opt/tomcat/tomcat/bin/startup.sh
 
-        echo "📡 Checking if Tomcat is listening on port 8080..."
-        sudo netstat -tuln | grep 8080 || echo "❌ Port 8080 is not open"
+echo "📡 Checking if Tomcat is listening on port 8080..."
+sudo netstat -tuln | grep 8080 || echo "❌ Port 8080 is not open"
 EOF
 
   post_build:
