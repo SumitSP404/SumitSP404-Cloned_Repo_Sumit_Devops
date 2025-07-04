@@ -14,7 +14,7 @@ phases:
     runtime-versions:
       java: corretto11
     commands:
-      - echo "🔧 Installing CodeBuild dependencies..."
+      - echo "🔧 Installing dependencies..."
       - yum install -y unzip awscli openssh
 
   pre_build:
@@ -32,10 +32,10 @@ phases:
       - scp -o StrictHostKeyChecking=no -i ec2-key.pem Ecomm.war $EC2_USER@$EC2_HOST:/home/ec2-user/
 
       - echo "🛠️ Installing Tomcat and deploying WAR on EC2..."
-      - |
-        ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST 'bash -s' <<'ENDSSH'
-        set -e
 
+      - >
+        ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST 'bash -s' <<EOF
+        set -e
         echo "🔧 Installing Java and wget..."
         sudo yum install -y java-11-openjdk wget
 
@@ -50,20 +50,18 @@ phases:
         echo "🚀 Deploying WAR..."
         sudo mv /home/ec2-user/Ecomm.war /opt/tomcat/tomcat/webapps/
 
-        echo "🔃 Starting Tomcat..."
+        echo "🎛️ Starting Tomcat..."
         sudo chmod +x /opt/tomcat/tomcat/bin/*.sh
         sudo /opt/tomcat/tomcat/bin/shutdown.sh || true
         sudo /opt/tomcat/tomcat/bin/startup.sh
 
-        echo "📡 Verifying Tomcat port 8080..."
-        sudo netstat -tuln | grep 8080 || echo "❌ Port 8080 not open"
-
-        echo "✅ Deployment complete."
-        ENDSSH
+        echo "📡 Verifying port 8080..."
+        sudo netstat -tuln | grep 8080 || echo "❌ Port 8080 is not open"
+        EOF
 
   post_build:
     commands:
-      - echo "✅ Tomcat deployment completed successfully."
+      - echo "✅ Deployment completed successfully."
 
 artifacts:
   files:
