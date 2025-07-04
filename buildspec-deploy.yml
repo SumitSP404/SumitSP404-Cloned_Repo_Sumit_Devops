@@ -1,0 +1,24 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing SSH and AWS CLI...
+      - yum install -y aws-cli openssh-clients
+
+  build:
+    commands:
+      - echo Downloading WAR from S3...
+      - aws s3 cp s3://ecommbucketproject/build-artifacts/Ecomm.war .
+
+      - echo Copying WAR to EC2 using SCP...
+      - chmod 400 ec2-key.pem
+      - scp -o StrictHostKeyChecking=no -i ec2-key.pem Ecomm.war ec2-user@<EC2_PUBLIC_IP>:/tmp/
+
+      - echo Deploying WAR on EC2...
+      - |
+        ssh -o StrictHostKeyChecking=no -i ec2-key.pem ec2-user@<EC2_PUBLIC_IP> << EOF
+          sudo mv /tmp/Ecomm.war /opt/tomcat/webapps/
+          sudo /opt/tomcat/bin/shutdown.sh
+          sudo /opt/tomcat/bin/startup.sh
+        EOF
