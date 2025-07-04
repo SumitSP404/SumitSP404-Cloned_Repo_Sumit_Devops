@@ -33,13 +33,13 @@ phases:
 
       - echo "🛠️ Installing Tomcat and deploying WAR on EC2..."
       - |
-        ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST 'bash -s' <<'ENDSSH'
+        ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST 'bash -s' <<EOF
         set -e
 
         echo "🔧 Installing Java and wget..."
         sudo yum install -y java-11-openjdk wget
 
-        echo "📁 Creating Tomcat directory..."
+        echo "📁 Setting up Tomcat..."
         sudo mkdir -p /opt/tomcat
         cd /opt/tomcat
 
@@ -54,7 +54,7 @@ phases:
         echo "🚀 Deploying WAR..."
         sudo mv /home/ec2-user/Ecomm.war /opt/tomcat/tomcat/webapps/
 
-        echo "🔧 Setting JAVA_HOME for Tomcat..."
+        echo "🔧 Setting JAVA_HOME..."
         JAVA_PATH=$(readlink -f $(which java) | sed "s:bin/java::")
         echo "export JAVA_HOME=$JAVA_PATH" | sudo tee -a /etc/profile
         export JAVA_HOME=$JAVA_PATH
@@ -64,9 +64,9 @@ phases:
         sudo /opt/tomcat/tomcat/bin/shutdown.sh || true
         sudo /opt/tomcat/tomcat/bin/startup.sh
 
-        echo "📡 Verifying Tomcat is running on port 8080..."
-        sudo netstat -tuln | grep 8080 && echo "✅ Tomcat is listening on port 8080"
-        ENDSSH
+        echo "📡 Verifying Tomcat is running..."
+        sudo netstat -tuln | grep 8080 || echo "❌ Tomcat not listening on port 8080"
+        EOF
 
   post_build:
     commands:
