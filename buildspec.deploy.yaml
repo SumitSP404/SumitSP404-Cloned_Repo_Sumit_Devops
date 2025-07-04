@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     S3_BUCKET: "test-war-file-upload"                             # Replace with your WAR bucket
-    S3_KEY: "build-artifacts/Ecomm1.war"                   # Your WAR path
+    S3_KEY: "build-artifacts/Ecomm.war"                   # Your WAR path
     EC2_USER: "ec2-user"
     EC2_HOST: "ec2-18-212-98-242.compute-1.amazonaws.com"      # Replace with your EC2 public IP or DNS
     PEM_BUCKET: "test-key-file-upload"                      # S3 bucket that stores .pem file
@@ -40,4 +40,4 @@ phases:
 
 artifacts:
   files:
-    - Ecomm1.war
+    - Ecomm.war
