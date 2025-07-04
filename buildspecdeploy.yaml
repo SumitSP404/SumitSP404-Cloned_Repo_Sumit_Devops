@@ -2,19 +2,19 @@ version: 0.2
 
 env:
   variables:
-    PEM_BUCKET: test-key-file-upload                # ✅ Replace with your actual PEM S3 bucket name
-    PEM_KEY: deploy-javaApp.pem                     # ✅ PEM key stored in S3
-    S3_BUCKET: test-war-file-upload                 # ✅ S3 bucket that contains the .war file
-    S3_KEY: build-artifacts/Ecomm.war               # ✅ .war file path inside S3
-    EC2_USER: ec2-user                               # ✅ Default user for Amazon Linux
-    EC2_HOST: ec2-54-236-5-156.compute-1.amazonaws.com  # ✅ EC2 public DNS
+    PEM_BUCKET: test-key-file-upload             # ✅ S3 bucket with PEM key
+    PEM_KEY: deploy-javaApp.pem                 # ✅ PEM key filename
+    S3_BUCKET: test-war-file-upload              # ✅ S3 bucket with WAR file
+    S3_KEY: build-artifacts/Ecomm.war           # ✅ S3 key/path of WAR file
+    EC2_USER: ec2-user                           # ✅ Typically 'ec2-user' for Amazon Linux
+    EC2_HOST: ec2-54-236-5-156.compute-1.amazonaws.com  # ✅ Public DNS or IP of your EC2
 
 phases:
   install:
     runtime-versions:
       java: corretto11
     commands:
-      - echo "🔧 Installing tools..."
+      - echo "🔧 Installing CodeBuild dependencies..."
       - yum install -y unzip awscli openssh
 
   pre_build:
@@ -25,42 +25,42 @@ phases:
 
   build:
     commands:
-      - echo "⬇️ Downloading WAR from S3..."
+      - echo "📦 Downloading WAR from S3..."
       - aws s3 cp s3://$S3_BUCKET/$S3_KEY Ecomm.war
 
-      - echo "🚀 Copying WAR to EC2..."
+      - echo "🚚 Copying WAR to EC2..."
       - scp -o StrictHostKeyChecking=no -i ec2-key.pem Ecomm.war $EC2_USER@$EC2_HOST:/home/ec2-user/
 
       - echo "🛠️ Installing Tomcat and deploying WAR on EC2..."
       - |
-        ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<'EOF'
-        set -e  # Exit on any error
+        ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<EOF
+        set -e
 
-        # Install Java and wget
+        echo "🔧 Installing Java and wget"
         sudo yum install -y java-11-openjdk wget
 
-        # Setup Tomcat directory
+        echo "📁 Creating Tomcat directory"
         sudo mkdir -p /opt/tomcat
         cd /opt/tomcat
 
-        # Download and extract Tomcat
+        echo "⬇️ Downloading Tomcat..."
         sudo wget https://downloads.apache.org/tomcat/tomcat-10/v10.1.42/bin/apache-tomcat-10.1.42.tar.gz
+
+        echo "📦 Extracting Tomcat..."
         sudo tar -xvzf apache-tomcat-10.1.42.tar.gz
         sudo mv apache-tomcat-10.1.42 tomcat
         sudo rm apache-tomcat-10.1.42.tar.gz
 
-        # Move WAR file
+        echo "🚀 Deploying WAR file"
         sudo mv /home/ec2-user/Ecomm.war /opt/tomcat/tomcat/webapps/
 
-        # Make scripts executable
+        echo "🎛️ Starting Tomcat"
         sudo chmod +x /opt/tomcat/tomcat/bin/*.sh
-
-        # Start Tomcat
         sudo /opt/tomcat/tomcat/bin/shutdown.sh || true
         sudo /opt/tomcat/tomcat/bin/startup.sh
 
-        # Check Tomcat port
-        sudo netstat -tuln | grep 8080 || echo "❌ Port 8080 not listening"
+        echo "📡 Checking if Tomcat is listening on port 8080..."
+        sudo netstat -tuln | grep 8080 || echo "❌ Port 8080 is not open"
         EOF
 
   post_build:
