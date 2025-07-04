@@ -5,9 +5,9 @@ env:
     S3_BUCKET: "test-war-file-upload"                             # Replace with your WAR bucket
     S3_KEY: "build-artifacts/Ecomm1.war"                   # Your WAR path
     EC2_USER: "ec2-user"
-    EC2_HOST: "ec2-xx-xx-xx-xx.compute.amazonaws.com"      # Replace with your EC2 public IP or DNS
+    EC2_HOST: "ec2-18-212-98-242.compute-1.amazonaws.com"      # Replace with your EC2 public IP or DNS
     PEM_BUCKET: "test-key-file-upload"                      # S3 bucket that stores .pem file
-    PEM_KEY: "tomcat-server.pem"                           # PEM file name
+    PEM_KEY: "deploy-javaApp.pem"                           # PEM file name
 
 phases:
   install:
@@ -22,10 +22,10 @@ phases:
   build:
     commands:
       - echo Downloading WAR from S3...
-      - aws s3 cp s3://$S3_BUCKET/$S3_KEY Ecomm1.war
+      - aws s3 cp s3://$S3_BUCKET/$S3_KEY Ecomm.war
 
       - echo Copying WAR to EC2...
-      - scp -o StrictHostKeyChecking=no -i ec2-key.pem Ecomm1.war $EC2_USER@$EC2_HOST:/home/ec2-user/
+      - scp -o StrictHostKeyChecking=no -i ec2-key.pem Ecomm.war $EC2_USER@$EC2_HOST:/home/ec2-user/
 
       - echo Deploying WAR to Tomcat...
       - ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<EOF
