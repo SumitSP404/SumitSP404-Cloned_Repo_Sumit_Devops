@@ -6,7 +6,7 @@ env:
     PEM_KEY: "deploy-javaApp.pem"
     S3_BUCKET: "test-war-file-upload"
     S3_KEY: "build-artifacts/Ecomm.war"
-    EC2_HOST: "ec2-XX-XX-XX-XX.compute-1.amazonaws.com"  # Replace with actual public DNS
+    EC2_HOST: "ec2-54-236-5-156.compute-1.amazonaws.com"  # Replace with actual public DNS
     EC2_USER: "ec2-user"
 
 phases:
