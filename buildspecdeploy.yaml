@@ -26,32 +26,21 @@ phases:
       - echo "📦 Downloading WAR from S3..."
       - aws s3 cp s3://$S3_BUCKET/$S3_KEY Ecomm.war
 
-      - echo "📡 Copying WAR + Tomcat to EC2..."
+      - echo "📡 Copying WAR + Installing Tomcat on EC2..."
       - scp -o StrictHostKeyChecking=no -i ec2-key.pem Ecomm.war $EC2_USER@$EC2_HOST:/home/ec2-user/
 
       - ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<'EOF'
-          # Install Java if missing
-          sudo yum install -y java-11-openjdk
-
-          # Create directory and download Tomcat
+          sudo yum install -y java-11-openjdk wget
           sudo mkdir -p /opt/tomcat
           cd /opt/tomcat
           sudo wget https://downloads.apache.org/tomcat/tomcat-10/v10.1.42/bin/apache-tomcat-10.1.42.tar.gz
           sudo tar -xvzf apache-tomcat-10.1.42.tar.gz
           sudo mv apache-tomcat-10.1.42 tomcat
           sudo rm apache-tomcat-10.1.42.tar.gz
-
-          # Deploy WAR
           sudo mv /home/ec2-user/Ecomm.war /opt/tomcat/webapps/
-
-          # Make Tomcat scripts executable
           sudo chmod +x /opt/tomcat/bin/*.sh
-
-          # Restart Tomcat
           sudo /opt/tomcat/bin/shutdown.sh || true
           sudo /opt/tomcat/bin/startup.sh
-
-          # Optional: print port status
           sudo netstat -tuln | grep 8080
         EOF
 
