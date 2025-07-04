@@ -29,7 +29,7 @@ phases:
 
       - echo Deploying WAR to Tomcat...
       - ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<EOF
-          sudo mv /home/ec2-user/Ecomm1.war /opt/apache-tomcat-10.1.42/webapps/
+          sudo mv /home/ec2-user/Ecomm.war /opt/apache-tomcat-10.1.42/webapps/
           sudo /opt/apache-tomcat-10.1.42/bin/shutdown.sh || true
           sudo /opt/apache-tomcat-10.1.42/bin/startup.sh
         EOF
