@@ -32,35 +32,34 @@ phases:
       - scp -o StrictHostKeyChecking=no -i ec2-key.pem Ecomm.war $EC2_USER@$EC2_HOST:/home/ec2-user/
 
       - echo "🛠️ Installing Tomcat and deploying WAR on EC2..."
-      - >
-        ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<'EOF'
+      - |
+        ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST 'bash -s' <<'ENDSSH'
         set -e
-        echo "🔧 Installing Java and wget"
+
+        echo "🔧 Installing Java and wget..."
         sudo yum install -y java-11-openjdk wget
 
-        echo "📁 Creating Tomcat directory"
+        echo "📁 Setting up Tomcat..."
         sudo mkdir -p /opt/tomcat
         cd /opt/tomcat
-
-        echo "⬇️ Downloading Tomcat..."
         sudo wget https://downloads.apache.org/tomcat/tomcat-10/v10.1.42/bin/apache-tomcat-10.1.42.tar.gz
-
-        echo "📦 Extracting Tomcat..."
         sudo tar -xvzf apache-tomcat-10.1.42.tar.gz
         sudo mv apache-tomcat-10.1.42 tomcat
         sudo rm apache-tomcat-10.1.42.tar.gz
 
-        echo "🚀 Deploying WAR file"
+        echo "🚀 Deploying WAR..."
         sudo mv /home/ec2-user/Ecomm.war /opt/tomcat/tomcat/webapps/
 
-        echo "🎛️ Starting Tomcat"
+        echo "🔃 Starting Tomcat..."
         sudo chmod +x /opt/tomcat/tomcat/bin/*.sh
         sudo /opt/tomcat/tomcat/bin/shutdown.sh || true
         sudo /opt/tomcat/tomcat/bin/startup.sh
 
-        echo "📡 Checking if Tomcat is listening on port 8080..."
-        sudo netstat -tuln | grep 8080 || echo "❌ Port 8080 is not open"
-EOF
+        echo "📡 Verifying Tomcat port 8080..."
+        sudo netstat -tuln | grep 8080 || echo "❌ Port 8080 not open"
+
+        echo "✅ Deployment complete."
+        ENDSSH
 
   post_build:
     commands:
