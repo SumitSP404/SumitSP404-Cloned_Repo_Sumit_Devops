@@ -1,0 +1,26 @@
+version: 0.2
+
+env:
+  variables:
+    ARTIFACT_BUCKET: "ecommbucketproject"
+    ARTIFACT_PATH: "build-artifacts/"
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+    commands:
+      - echo Installing Maven...
+      - yum install -y maven
+
+  build:
+    commands:
+      - echo Building the app...
+      - mvn clean package -DskipTests
+
+  post_build:
+    commands:
+      - echo Uploading WAR file to S3...
+      - |
+        ARTIFACT_FILE=$(ls target/*.war | head -n 1)
+        aws s3 cp "$ARTIFACT_FILE" "s3://$ARTIFACT_BUCKET/$ARTIFACT_PATH"
