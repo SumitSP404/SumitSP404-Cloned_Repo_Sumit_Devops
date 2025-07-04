@@ -2,48 +2,56 @@ version: 0.2
 
 env:
   variables:
-    PEM_BUCKET: "test-key-file-upload"
-    PEM_KEY: "deploy-javaApp.pem"
-    S3_BUCKET: "test-war-file-upload"
-    S3_KEY: "build-artifacts/Ecomm.war"
-    EC2_HOST: "ec2-54-236-5-156.compute-1.amazonaws.com"  # Replace with actual public DNS
-    EC2_USER: "ec2-user"
+    PEM_BUCKET: test-key-file-upload           # ✅ Replace with your actual PEM S3 bucket
+    PEM_KEY: deploy-javaApp.pem               # ✅ Replace with your PEM file name
+    S3_BUCKET: test-war-file-upload            # ✅ S3 bucket with WAR
+    S3_KEY: build-artifacts/Ecomm.war         # ✅ S3 key/path of WAR file
+    EC2_USER: ec2-user                         # ✅ Usually ec2-user for Amazon Linux
+    EC2_HOST: ec2-54-236-5-156.compute-1.amazonaws.com  # ✅ Replace with your EC2 public DNS
 
 phases:
   install:
+    runtime-versions:
+      java: corretto11
     commands:
-      - echo "🔧 Installing tools..."
-      - yum install -y unzip awscli java-11-openjdk wget openssh
+      - echo Installing dependencies...
+      - yum install -y unzip awscli openssh
 
   pre_build:
     commands:
-      - echo "🔐 Downloading PEM key from S3..."
+      - echo Downloading PEM key from S3...
       - aws s3 cp s3://$PEM_BUCKET/$PEM_KEY ec2-key.pem
       - chmod 400 ec2-key.pem
 
   build:
     commands:
-      - echo "📦 Downloading WAR from S3..."
+      - echo Downloading WAR from S3...
       - aws s3 cp s3://$S3_BUCKET/$S3_KEY Ecomm.war
 
-      - echo "📡 Copying WAR + Installing Tomcat on EC2..."
+      - echo Copying WAR to EC2...
       - scp -o StrictHostKeyChecking=no -i ec2-key.pem Ecomm.war $EC2_USER@$EC2_HOST:/home/ec2-user/
 
-      - ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<'EOF'
-          sudo yum install -y java-11-openjdk wget
-          sudo mkdir -p /opt/tomcat
-          cd /opt/tomcat
-          sudo wget https://downloads.apache.org/tomcat/tomcat-10/v10.1.42/bin/apache-tomcat-10.1.42.tar.gz
-          sudo tar -xvzf apache-tomcat-10.1.42.tar.gz
-          sudo mv apache-tomcat-10.1.42 tomcat
-          sudo rm apache-tomcat-10.1.42.tar.gz
-          sudo mv /home/ec2-user/Ecomm.war /opt/tomcat/webapps/
-          sudo chmod +x /opt/tomcat/bin/*.sh
-          sudo /opt/tomcat/bin/shutdown.sh || true
-          sudo /opt/tomcat/bin/startup.sh
-          sudo netstat -tuln | grep 8080
+      - echo Installing Tomcat & deploying WAR on EC2...
+      - |
+        ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<'EOF'
+        sudo yum install -y java-11-openjdk wget
+        sudo mkdir -p /opt/tomcat
+        cd /opt/tomcat
+        sudo wget https://downloads.apache.org/tomcat/tomcat-10/v10.1.42/bin/apache-tomcat-10.1.42.tar.gz
+        sudo tar -xvzf apache-tomcat-10.1.42.tar.gz
+        sudo mv apache-tomcat-10.1.42 tomcat
+        sudo rm apache-tomcat-10.1.42.tar.gz
+        sudo mv /home/ec2-user/Ecomm.war /opt/tomcat/webapps/
+        sudo chmod +x /opt/tomcat/bin/*.sh
+        sudo /opt/tomcat/bin/shutdown.sh || true
+        sudo /opt/tomcat/bin/startup.sh
+        sudo netstat -tuln | grep 8080
         EOF
 
   post_build:
     commands:
-      - echo "✅ Tomcat deployed and restarted."
+      - echo ✅ Tomcat deployment completed successfully.
+
+artifacts:
+  files:
+    - Ecomm.war
