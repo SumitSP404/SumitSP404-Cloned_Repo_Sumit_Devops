@@ -2,12 +2,12 @@ version: 0.2
 
 env:
   variables:
-    PEM_BUCKET: test-key-file-upload             # ✅ S3 bucket with PEM key
-    PEM_KEY: deploy-javaApp.pem                 # ✅ PEM key filename
-    S3_BUCKET: test-war-file-upload              # ✅ S3 bucket with WAR file
-    S3_KEY: build-artifacts/Ecomm.war           # ✅ S3 key/path of WAR file
-    EC2_USER: ec2-user                           # ✅ Typically 'ec2-user' for Amazon Linux
-    EC2_HOST: ec2-54-236-5-156.compute-1.amazonaws.com  # ✅ Public DNS or IP of your EC2
+    PEM_BUCKET: test-key-file-upload
+    PEM_KEY: deploy-javaApp.pem
+    S3_BUCKET: test-war-file-upload
+    S3_KEY: build-artifacts/Ecomm.war
+    EC2_USER: ec2-user
+    EC2_HOST: ec2-54-236-5-156.compute-1.amazonaws.com
 
 phases:
   install:
@@ -33,9 +33,8 @@ phases:
 
       - echo "🛠️ Installing Tomcat and deploying WAR on EC2..."
       - |
-        ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<EOF
+        ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<'EOF'
         set -e
-
         echo "🔧 Installing Java and wget"
         sudo yum install -y java-11-openjdk wget
 
@@ -61,7 +60,7 @@ phases:
 
         echo "📡 Checking if Tomcat is listening on port 8080..."
         sudo netstat -tuln | grep 8080 || echo "❌ Port 8080 is not open"
-        EOF
+EOF
 
   post_build:
     commands:
