@@ -35,6 +35,7 @@ phases:
       - |
         ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST <<'EOF'
         set -e
+
         echo "🔧 Installing Java and wget"
         sudo yum install -y java-11-openjdk wget
 
